@@ -21,14 +21,14 @@ renderer.xr.enabled = true
 document.body.appendChild(renderer.domElement);
 document.body.appendChild(ARButton.createButton(renderer, { requiredFeatures: ['hit-test'] }));
 
-const camera = new THREE.PerspectiveCamera(75, window.innerWidthwidth / window.innerHeight, 0.1, 1000);
+const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
 camera.position.set(0, 2, 5);
 camera.lookAt(new THREE.Vector3(0, 0, 0))
 const scene = new THREE.Scene();
 scene.add(camera);
 
 const controls = new OrbitControls( camera, renderer.domElement );
-controls.target.set( 0, 0.5, 0 );
+controls.target.set( 0, 0, 0 );
 controls.update();
 controls.enablePan = false;
 controls.enableDamping = true;
@@ -39,16 +39,25 @@ gltfLoader.setDRACOLoader( dracoLoader );
 // scene.background = new THREE.Color( 0xbfe3dd );
 // scene.environment = pmremGenerator.fromScene( new RoomEnvironment( renderer ), 0.04 ).texture;
 
+gltfLoader.load('/models/gltf-file/WUSHANGCLAN.gltf', function(gltf) {
+	scene.add( gltf.scene );
+    loadedModels.push( gltf.scene )
+}, undefined, function ( error ) {
+	console.error( error );
+} );
 
 
-gltfLoader.load('/models/gltf-file/WUSHANGCLAN.gltf', onLoad,
-    function (xhr) {
-        console.log((xhr.loaded / xhr.total * 100) + '% loaded');
-    },
-    function (error) {
-        console.error('An error happened', error);
-    }
-);
+
+
+
+// onLoad,
+//     function (xhr) {
+//         console.log((xhr.loaded / xhr.total * 100) + '% loaded');
+//     },
+//     function (error) {
+//         console.error('An error happened', error);
+//     }
+// );
 
 //     const model = gltf.scene;
 //     model.position.set( 1, 1, 0 );
@@ -58,10 +67,6 @@ gltfLoader.load('/models/gltf-file/WUSHANGCLAN.gltf', onLoad,
 //     mixer = new THREE.AnimationMixer( model );
 //     mixer.clipAction( gltf.animations[ 0 ] ).play();
 // }
-
-function onLoad(gtlf) {
-    loadedModels.push(gtlf.scene)
-}
 
 
 console.log("GLTF: ", gltfLoader);
@@ -83,26 +88,36 @@ reticle.visible = false;
 reticle.matrixAutoUpdate = false;
 scene.add(reticle)
 
-
-
 let controller = renderer.xr.getController(0);
 controller.addEventListener('select', onSelect);
 scene.add(controller)
 
-console.log("Loaded Model: ", loadedModels.length);
+console.log("Loaded MODELLLL: ", loadedModels.length);
 // The model is not beong loaded as it can be seen here     
 
 
 function onSelect() {
-    if (reticle.visible) {
-        let model = loadedModels.clone()
-        model.position.setFromMatrixPosition(reticle.matrix);
-        // model.scale.set(.1, .1, .1)
-        model.name = "WUSHANGCLAN"
-        scene.add(model)
-        console.log("MODEEEL: ", model);
+    console.log("Reticle: ", reticle);
+
+    if (reticle.visible && loadedModels.length > 0) {
+        console.log("Loaded Model count: ", loadedModels.length);
+        const modelToClone = loadedModels[0]; // Ensure this is a loaded model
+        if (modelToClone) {
+            const model = modelToClone.clone();
+            console.log("Cloned Model: ", model);
+
+            model.position.setFromMatrixPosition(reticle.matrix);
+            model.scale.set(2, 2, 2); // Adjust scale as needed
+            model.name = "WUSHANGCLAN";
+
+            scene.add(model);
+            console.log("Model added to scene");
+        } else {
+            console.error("No model available to clone");
+        }
     }
 }
+
 
 renderer.setAnimationLoop(render)
 
@@ -139,20 +154,16 @@ function render(timestamp, frame) {
         }
     }
     scene.children.forEach(object => {
-        if (object.name === "model") {
+        if (object.name === "WUSHANGCLAN") {
             object.rotation.y += 0.01
-            console.log("MKC", object);
         }
     })
     renderer.render(scene, camera)
 }
 
 window.addEventListener('resize', () => {
-
     camera.aspect = window.innerWidth / window.innerHeight;
     camera.updateProjectionMatrix();
-
-    renderer.setSize( window.innerWidth, window.innerHeight );
+    renderer.setSize(window.innerWidth, window.innerHeight);
     renderer.setPixelRatio(window.devicePixelRatio)
-
 })
